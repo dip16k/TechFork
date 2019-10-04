@@ -1,0 +1,23 @@
+://medium.com/@naveen.maltesh/generating-code-coverage-report-using-gnu-gcov-lcov-ee54a4de3f11
+
+g++ -o main  -fprofile-arcs -ftest-coverage main_test.cpp -L /usr/lib -I/usr/include
+
+./main
+
+This will generate two types of files one is ending with extension .gcno which has info for basic block construction and line numbers this is generated because of the -ftest-coverage flag which we added while compiling with g++ command , and other type is ending with .gcda will have profiling and coverage information which is generated because of flag -fprofile-arcs in g++ command . we need both to create coverage reports 
+
+To generate report you need to pass your test file to gcov.
+
+gcov main_test.cpp
+
+this will generate coverage report . which will be named as main_test.cpp.gcov since the content is not much intuitive to read by layman there is another tool which is used to generate html files of these reports which can be viewed in the browser later.
+
+So here we will use lcov tool to check line coverage and generate html reports . For this command is as shown below.
+
+lcov --coverage --directory . --output-file main_coverage.info
+
+This will create a coverage report by taking .gcno and .gcda files from ‘.’ i.e. current folder where these files are present and generate an output file with coverage info in file called main_coverage.info .
+
+Now we have coverage info lets display it in html file using below command.
+
+genhtml main_coverage.info --output-directory out
