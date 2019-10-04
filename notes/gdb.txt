@@ -1,0 +1,272 @@
+1. Compile a Program with Debugging Symbols
+
+It is the first step which you must complete before you start using GDB to debug your code. Please compile the code using the GDB options as given in the below example.
+
+$ gcc -ggdb -Wall -o gdbtest gdbtest.c
+
+# -g: This option adds debugging info in the operating system's native format.
+   e.g. stabs, COFF, XCOFF, or DWARF.
+
+# -ggdb: It produces debugging information compatible for use by GDB.
+   i.e. the most expressive format available.
+   e.g. DWARF 2, stabs, or the native format if none is available.
+
+# -Wall: It enables all warnings in the code.
+
+2. Tips to Start a Program with GDB
+
+There are multiple ways you can start your program with GDB which we’ve mentioned below.
+Run a program without any argument.
+
+Simply open the terminal window and run the following command.
+
+$ gdb program
+
+(gdb) run (r as shortcut key)
+
+Run a program with arguments.
+
+There are two ways you can feed arguments to your program in the GDB debugger. Please follow the steps given in the below code snippet.
+
+Method-I:
+  $ gdb --args program arg1 arg2 ... argN  
+  (gdb) r
+
+Method-II:
+  $ gdb program  
+  (gdb) r arg1 arg2 ... argN
+
+#Note - Run GDB with <--silent> option to hide the extra output it emits on the console.
+
+3. Print Source Code in GDB Console
+
+If your program hits a breakpoint, then you may want to look at the source code around it. In such a case, use the <l (or list)> command which prints <ten lines> of source code at a time.
+
+You can also pass the list command <a line number> or <a function name> to tell GDB where to start.
+Display lines after a line number
+
+(gdb) list 12
+7         int status = 0;
+8
+9         if (!isNumber(*ptr))
+10           return -1;
+11        else
+12            while (isNumber(*p))
+13                status += *p - '0';
+14        return status;
+15    }
+16
+
+Display lines after a function
+
+(gdb) list CheckValidEmail
+14        return result;
+15     }
+16
+17     void
+18     CheckValidEmail(char* eMail)
+19     {
+20         int rc = isValidEmail(eMail);
+21         if (rc &lt; 0)
+22         fputs("Invalid eMail\n", stderr);
+23     }
+
+Note – GDB debugger usually shows a few lines back of the point you requested.
+4. Six GDB Tips to Set up Breakpoints
+
+Probably it’s a great idea to outline different ways of setting breakpoints in GDB debugger. It’s because a smart break-point can help you quickly find bugs in the source code.
+1. Break into a line or a Function.
+
+(gdb) break (b as shortcut) linenum
+# Note: Break will take place at line <linenum> in the current source file.
+# The current file is the last file whose code appeared in the debug console.
+(gdb) b function
+
+2. Break into a line which is relative to the current line.
+
+(gdb) b +linenum
+
+3. Break into a Function in a given file.
+
+(gdb) b filename:function
+
+4. Break on to a line in a given file.
+
+(gdb) b filename:linenum
+
+5. Break upon matching memory address.
+
+If you have a program without debug symbols, then you can’t use any of the above options. Instead, the gdb allows you to specify a break point for memory addresses.
+
+(gdb) b *(memory address)
+
+6. Break after a condition.
+
+(gdb) b <...> if condition
+
+# Note:
+#1: The symbol <...> implies that you can use any form of breakpoints.
+#2: Some of them you've already seen in the previous tips.
+    Example: break linenum if variable==1
+
+5. Four GDB Commands to Print Debug Info
+Command to execute after the program hits a break-point.
+
+With the help of the <command> keyword, you can set multiple commands to run every time a breakpoint occurs. See the below code snippet for clarity.
+
+(gdb) b CheckValidEmail
+Breakpoint 1 at 0x8049d87: file ../../test/testgdb.c, line 107.
+(gdb) command 1
+# Note:
+#1: 1 is the breakpoint number.
+#2: Here you can specify set of commands to execute.
+#3: To close the command block, use the "end" keyword.
+>print port
+>print IPAddr
+>print User
+>print Pwd
+>end
+(gdb)
+
+1. How to print backtrace after the breakpoint?
+
+(gdb) backtrace (or bt as shortcut)
+# OR
+(gdb) info stack
+
+# Note: This option will display a chain of functions (on the output console).
+
+2. How to execute a function to the end after a breakpoint?
+
+You can issue the <fin> command inside GDB. It’ll run through the entire function.
+
+(gdb) fin
+#It'll execute to the point where function returns.
+
+3. How to print the current stack of the executing program?
+
+You can call the <where> command which will return the trace along with the line number.
+
+(gdb) where
+#Tell you the point where the program died.
+
+4. How to print the line number in GDB while debugging?
+
+It’s the <frame> gdb command that will return the line number.
+
+(gdb) frame
+ #0  0x0807826e in main () at test.c:18
+ 18        if(is_exist(list, 10) != 0 ) {
+(gdb)
+
+6. Six GDB Commands to Trace Variables
+1. Print standard variable (int, char, etc.)
+
+(gdb) p <<variable>>
+
+2. Print structure variable
+
+(gdb) p <<structure>>
+
+3. Print pointer variable
+
+(gdb) p <<*ptr>>
+
+4. Print a Macro
+
+Printing a macro requires that you first compile your program with an extra option. Use the <-ggdb3> flag.
+
+(gdb) p/x DBG_FLAG
+$1 = 0x00
+
+# Note: The x in the p/x would cause to print output in hex format.
+
+5. Print an Array
+
+We’ll use an example to show how to print an array. Please see below code snippet.
+
+Example: If you have defined an integer array as int arr[5] = {1, 2, 3, 4, 5};
+Then you can use - (gdb) p arr
+Output would be $1 = {1, 2, 3, 4, 5}
+
+But the above method would not help if we have a large array of integers say 100 and the need is to print the integers between (96-100) range.
+For this purpose, you can use following method which works in all cases but is a little complex in nature.
+e.g. (gdb) p *&arr[96]@5
+
+6. Add Watchers
+
+Adding watchpoints is same as telling the debugger to give a dynamic analysis of changes to the variables. And, it’s easy to add a watchpoint in your code.
+
+(gdb) watch <<variable>>
+
+7. Continue, Step-in or Next Operations
+
+After you’ve finished examining the variables, the next thing you will be doing is executing the code. So to simply resume the execution, issue the <c (or continue)> command. And your code will continue running until it hits another breakpoint.
+
+Breakpoint 2, CheckValidEmail(p=0xbffff260 "testing@techbeamers.com") at testgdb.c:23
+23      int result = isValidEmail(ptr);
+(gdb) n
+24      if (result < 0)
+
+<c> to continue execution.
+
+If your program hits a breakpoint, then use this command to resume its execution.
+<n> for executing the next line.
+
+After a breakpoint, press <n> to execute the next line of code. It’ll run the entire line irrespective of it is a function call or a primary assignment.
+<s> to step into the function.
+
+If a program is in the halt state, then use <s> to step into any function call instead of executing them completely.
+8. Skip/Ignore Breakpoints
+
+While you are running through a loop in your code and wouldn’t want to pause for every break, then <ignore> command can help. Here is how you can skip a breakpoint the number of times you want.
+
+First, check the index of the breakpoint which you want to ignore. Use the <info breakpoints> command.
+
+(gdb) break test.cpp:18
+Breakpoint 1 at 0x8005cd: file test.cpp, line 18.
+ 
+(gdb) info breakpoints
+Num     Type           Disp Enb Address            What
+1       breakpoint     keep y   0x00000000008005cd in main() at test.cpp:18
+
+Then, run the following command in the GDB debugger. Say, we want to ignore the break for 1000 times.
+
+(gdb) ignore 1 1000
+Will ignore next 1000 crossings of breakpoint 1.
+(gdb) run
+Starting program: /home/sample/src/test
+ 
+Program received signal SIGSEGV, Segmentation fault.
+0x00000000008005cd in main () at test.cpp:18
+18            i = *ptr++;
+(gdb) info breakpoints
+Num     Type           Disp Enb Address            What
+1       breakpoint     keep y   0x00000000008005cd in main() at test.cpp:18
+    breakpoint already hit 10 times
+    ignore next 990 hits
+(gdb)
+
+In the above example, we set the ignore limit to 1000, but the program crashed after the 10th iteration. So you should revise the ignore limit to 9 and step in to debug the condition which is leading to the crash.
+
+That’s how the <gdb ignore> command helps in isolating issues.
+9. Remove Breakpoints & Quit from GDB
+
+Finally, let’s end this GDB tutorial with the following two commands.
+Deleting a Breakpoint
+
+The option <d> is the GDB shortcut for deleting any breakpoint.
+
+(gdb) d <<breakpoint num>>
+
+Quitting from the GDB debugger
+
+Use <q> or the <quit> command to exit from the GDB debugger.
+
+(gdb) q
+
+
+
+
+
+site:https://www.techbeamers.com/how-to-use-gdb-top-debugging-tips/
